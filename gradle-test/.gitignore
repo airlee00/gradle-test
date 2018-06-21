@@ -1,0 +1,10 @@
+/.apt_generated/
+/target/
+/.ci
+/.pmd
+/.springBeans
+/.factorypath
+/.settings/
+/bin/
+/build/
+/.gradle/

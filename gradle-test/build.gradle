@@ -1,0 +1,72 @@
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'minutes'
+    resolutionStrategy.cacheDynamicVersionsFor 5, 'hours'
+}
+
+buildscript {
+   repositories {
+        maven { 
+            url nexus_url + '/content/groups/public/'
+        }
+    }
+    dependencies {
+        classpath group: 'com.hanatour', name:'hnt-dependency-management-oltp', version:'4.0.0-SNAPSHOT'
+    }
+}  
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+description = 'gradle-test'
+group = 'com.hanatour'
+version = '1.0.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+compileJava.options.encoding = 'UTF-8' 
+
+import framexpert.run.oltp.core.crypto.StringEncryptor
+def dec_nexus_password
+task decryptPassword  {
+        println nexus_username
+        dec_nexus_password = StringEncryptor.getInstance().decrypt(nexus_password)
+}
+
+repositories {
+    maven { 
+        url nexus_url + '/content/groups/public/'
+    }
+}
+
+dependencies {
+        compile group: 'com.hanatour', name:'hnt-dependency-management-oltp', version:'4.0.0-SNAPSHOT'
+    testCompile group: 'framexpert.run.oltp', name: 'framexpert-run-oltp-test', version:'4.0.0-SNAPSHOT'
+}
+
+tasks.uploadArchives.dependsOn("decryptPassword")
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: nexus_url + '/content/repositories/releases/') {
+                authentication(userName: nexus_username, password: dec_nexus_password)
+            }
+            snapshotRepository(url: nexus_url + '/content/repositories/snapshots/') {
+                authentication(userName: nexus_username, password: dec_nexus_password)
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+         maven {
+            url 'file://d:/HNT/maven/repository'
+         }
+    }
+}
